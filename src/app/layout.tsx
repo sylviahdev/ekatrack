@@ -1,5 +1,5 @@
 import "./globals.css";
-import { Layout } from "@/components/Layout";
+import { AppShell } from "@/components/AppShell";
 
 export const metadata = {
   title: "EkaTrack — Ekafarm Agri-Solutions",
@@ -10,7 +10,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
-        <Layout>{children}</Layout>
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   );
