@@ -17,6 +17,7 @@ import {
   newActivity,
   WorkDay,
   Activity,
+  ActivityStatus,
 } from "@/lib/db";
 import {
   formatDateKE,
@@ -295,6 +296,13 @@ function ActivityEditor({
           <Trash2 size={16} />
         </button>
       </div>
+      <div className="mb-3">
+        <span className="block text-sm font-medium text-eka-900 mb-1">Status</span>
+        <StatusPicker
+          value={activity.status ?? "pending"}
+          onChange={(status) => onChange({ status })}
+        />
+      </div>
       <div className="grid lg:grid-cols-2 gap-3">
         <Field
           label="Requirements"
@@ -325,6 +333,58 @@ function ActivityEditor({
           {parsed.chemicals > 0 && ` · Chems ${formatKsh(parsed.chemicals)}`}
         </p>
       )}
+    </div>
+  );
+}
+
+function StatusPicker({
+  value,
+  onChange,
+}: {
+  value: ActivityStatus;
+  onChange: (s: ActivityStatus) => void;
+}) {
+  const options: {
+    key: ActivityStatus;
+    label: string;
+    activeClass: string;
+  }[] = [
+    {
+      key: "pending",
+      label: "Pending",
+      activeClass: "bg-amber-100 text-amber-800 ring-amber-300",
+    },
+    {
+      key: "completed",
+      label: "Completed",
+      activeClass: "bg-eka-100 text-eka-800 ring-eka-400",
+    },
+    {
+      key: "delayed",
+      label: "Delayed",
+      activeClass: "bg-red-100 text-red-800 ring-red-300",
+    },
+  ];
+  return (
+    <div className="inline-flex rounded-lg border border-eka-200 bg-white p-1">
+      {options.map((o) => {
+        const active = value === o.key;
+        return (
+          <button
+            key={o.key}
+            type="button"
+            onClick={() => onChange(o.key)}
+            aria-pressed={active}
+            className={`px-3 py-1 text-xs font-semibold rounded-md transition-colors ${
+              active
+                ? `${o.activeClass} ring-1`
+                : "text-gray-500 hover:text-eka-800 hover:bg-eka-50"
+            }`}
+          >
+            {o.label}
+          </button>
+        );
+      })}
     </div>
   );
 }

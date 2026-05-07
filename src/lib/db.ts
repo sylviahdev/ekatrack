@@ -13,11 +13,14 @@ export type Client = {
   createdAt: string;
 };
 
+export type ActivityStatus = "completed" | "pending" | "delayed";
+
 export type Activity = {
   id: string;
   title: string;
   requirements: string;
   remarks: string;
+  status?: ActivityStatus;
 };
 
 export type WorkDay = {
@@ -264,5 +267,6 @@ export function newActivity(): Activity {
     title: "",
     requirements: "",
     remarks: "",
+    status: "pending",
   };
 }
