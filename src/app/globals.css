@@ -18,7 +18,7 @@
 }
 
 html, body {
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-inter), system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
 body {
@@ -35,7 +35,7 @@ body {
   background: white;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   color: #111;
-  font-family: "Times New Roman", Georgia, serif;
+  font-family: var(--font-inter), system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
 /* Hide scrollbars on the editor preview pane while keeping scroll */

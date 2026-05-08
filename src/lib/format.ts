@@ -17,6 +17,15 @@ export function formatDayName(iso: string | Date): string {
   return d.toLocaleDateString("en-GB", { weekday: "long" });
 }
 
+export function formatDateTimeKE(d: Date = new Date()): string {
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const yy = d.getFullYear();
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mi = String(d.getMinutes()).padStart(2, "0");
+  return `${dd}/${mm}/${yy} · ${hh}:${mi}`;
+}
+
 export function todayISO(): string {
   const d = new Date();
   d.setHours(0, 0, 0, 0);

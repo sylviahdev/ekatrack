@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { Plus, Trash2, Download, Eye } from "lucide-react";
 import {
@@ -29,6 +29,26 @@ export default function ReceiptsPage() {
   );
   const [open, setOpen] = useState(false);
   const [previewing, setPreviewing] = useState<Receipt | null>(null);
+  const [exporting, setExporting] = useState<Receipt | null>(null);
+  const exportRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!exporting) return;
+    const id = window.setTimeout(async () => {
+      if (!exportRef.current) return;
+      const safeName =
+        exporting.receivedFrom.replace(/\s+/g, "_") || "Customer";
+      try {
+        await exportNodeToPdf(
+          exportRef.current,
+          `Receipt_${exporting.receiptNumber}_${safeName}.pdf`
+        );
+      } finally {
+        setExporting(null);
+      }
+    }, 50);
+    return () => window.clearTimeout(id);
+  }, [exporting]);
 
   return (
     <>
@@ -86,6 +106,14 @@ export default function ReceiptsPage() {
                         <Eye size={14} />
                       </button>
                       <button
+                        onClick={() => setExporting(r)}
+                        disabled={exporting?.id === r.id}
+                        className="p-1.5 text-gray-500 hover:text-eka-700 disabled:opacity-50"
+                        aria-label="Download PDF"
+                      >
+                        <Download size={14} />
+                      </button>
+                      <button
                         onClick={async () => {
                           if (confirm(`Delete receipt #${r.receiptNumber}?`))
                             await db.receipts.delete(r.id!);
@@ -104,12 +132,27 @@ export default function ReceiptsPage() {
         </Card>
       )}
 
-      {open && <NewReceiptModal onClose={() => setOpen(false)} />}
+      {open && (
+        <NewReceiptModal
+          onClose={() => setOpen(false)}
+          onSaved={(r) => {
+            setOpen(false);
+            setPreviewing(r);
+          }}
+        />
+      )}
       {previewing && (
         <ReceiptPreviewModal
           receipt={previewing}
           onClose={() => setPreviewing(null)}
         />
+      )}
+
+      {/* Off-screen render target for one-click row export */}
+      {exporting && (
+        <div style={{ position: "fixed", left: -10000, top: 0 }}>
+          <ReceiptDocument ref={exportRef} receipt={exporting} />
+        </div>
       )}
     </>
   );
@@ -124,7 +167,13 @@ function newItem(): ReceiptItem {
   };
 }
 
-function NewReceiptModal({ onClose }: { onClose: () => void }) {
+function NewReceiptModal({
+  onClose,
+  onSaved,
+}: {
+  onClose: () => void;
+  onSaved: (receipt: Receipt) => void;
+}) {
   const [date, setDate] = useState<string>(new Date().toISOString().slice(0, 10));
   const [receivedFrom, setReceivedFrom] = useState("");
   const [items, setItems] = useState<ReceiptItem[]>([newItem()]);
@@ -142,15 +191,16 @@ function NewReceiptModal({ onClose }: { onClose: () => void }) {
     const cleanItems = items.filter((i) => i.description.trim() && i.quantity > 0);
     if (cleanItems.length === 0) return;
     const num = await nextReceiptNumber();
-    await db.receipts.add({
+    const record: Receipt = {
       receiptNumber: num,
       date: new Date(date + "T00:00:00").toISOString(),
       receivedFrom: receivedFrom.trim(),
       items: cleanItems,
       total: cleanItems.reduce((s, i) => s + i.quantity * i.unitPrice, 0),
       createdAt: todayISO(),
-    });
-    onClose();
+    };
+    const id = await db.receipts.add(record);
+    onSaved({ ...record, id: id as number });
   };
 
   return (
